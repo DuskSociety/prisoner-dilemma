@@ -1,0 +1,22 @@
+{
+  "name": "囚徒博弈：对决",
+  "short_name": "囚徒博弈",
+  "description": "双人回合制策略博弈游戏 - 信任还是背叛？",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2E75B6",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

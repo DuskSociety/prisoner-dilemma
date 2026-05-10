@@ -1,0 +1,12 @@
+{
+  "name": "prisoner-dilemma",
+  "version": "1.0.0",
+  "description": "囚徒博弈：对决 - 双人回合制策略博弈游戏",
+  "scripts": {
+    "build": "cd client && npm install && npx vite build && cd ../server && npm install",
+    "start": "cd server && npm start"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
