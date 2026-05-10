@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 // Card types
 export const CardType = {
   BIG_JOKER: 'big_joker',    // 大Joker = 合作
@@ -35,11 +37,11 @@ export function getPayoff(p1Actual, p2Actual) {
 // Create initial hand for a player
 export function createHand() {
   return [
-    { id: crypto.randomUUID(), type: CardType.BIG_JOKER },
-    { id: crypto.randomUUID(), type: CardType.BIG_JOKER },
-    { id: crypto.randomUUID(), type: CardType.SMALL_JOKER },
-    { id: crypto.randomUUID(), type: CardType.SMALL_JOKER },
-    { id: crypto.randomUUID(), type: CardType.WILD },
+    { id: randomUUID(), type: CardType.BIG_JOKER },
+    { id: randomUUID(), type: CardType.BIG_JOKER },
+    { id: randomUUID(), type: CardType.SMALL_JOKER },
+    { id: randomUUID(), type: CardType.SMALL_JOKER },
+    { id: randomUUID(), type: CardType.WILD },
   ];
 }
 
@@ -72,5 +74,5 @@ export function generateRoomCode() {
 
 // Generate a player token for reconnection
 export function generateToken() {
-  return crypto.randomUUID();
+  return randomUUID();
 }
