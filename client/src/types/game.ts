@@ -31,6 +31,7 @@ export interface TurnResult {
 }
 
 export interface GameState {
+  connected: boolean;
   roomId: string | null;
   playerIndex: number | null;
   token: string | null;

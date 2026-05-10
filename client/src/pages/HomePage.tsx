@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 interface HomePageProps {
@@ -6,23 +6,35 @@ interface HomePageProps {
 }
 
 export function HomePage({ emit }: HomePageProps) {
-  const { setPage } = useGameStore();
+  const { setPage, connected } = useGameStore();
   const [mode, setMode] = useState<'idle' | 'create' | 'join'>('idle');
   const [name, setName] = useState(() => localStorage.getItem('pd_name') || '');
   const [code, setCode] = useState('');
   const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
+  const [submitting, setSubmitting] = useState(false);
+  const submitTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => clearTimeout(submitTimer.current);
+  }, []);
 
   const handleCreate = () => {
-    if (!name.trim()) return;
+    if (!name.trim() || submitting) return;
+    setSubmitting(true);
     localStorage.setItem('pd_name', name.trim());
     emit('create_room', { name: name.trim() });
+    clearTimeout(submitTimer.current);
+    submitTimer.current = setTimeout(() => setSubmitting(false), 5000);
   };
 
   const handleJoin = () => {
     const fullCode = codeDigits.join('');
-    if (!name.trim() || fullCode.length !== 6) return;
+    if (!name.trim() || fullCode.length !== 6 || submitting) return;
+    setSubmitting(true);
     localStorage.setItem('pd_name', name.trim());
     emit('join_room', { code: fullCode, name: name.trim() });
+    clearTimeout(submitTimer.current);
+    submitTimer.current = setTimeout(() => setSubmitting(false), 5000);
   };
 
   const handleDigitInput = (index: number, value: string) => {
@@ -73,6 +85,13 @@ export function HomePage({ emit }: HomePageProps) {
 
       {/* Action Area */}
       <div className="w-full max-w-md">
+        {/* Connection Status */}
+        {!connected && (
+          <div className="mb-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 text-center animate-pulse">
+            正在连接服务器...
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl card-shadow-lg p-6 mb-4">
           {/* Name Input */}
           <div className="mb-5">
@@ -94,14 +113,14 @@ export function HomePage({ emit }: HomePageProps) {
             <div className="space-y-3">
               <button
                 onClick={() => setMode('create')}
-                disabled={!name.trim()}
+                disabled={!name.trim() || !connected}
                 className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed card-shadow"
               >
                 创建房间
               </button>
               <button
                 onClick={() => setMode('join')}
-                disabled={!name.trim()}
+                disabled={!name.trim() || !connected}
                 className="w-full py-3.5 bg-surface-alt text-text-primary rounded-xl font-semibold text-lg hover:bg-slate-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200"
               >
                 加入房间
@@ -117,9 +136,10 @@ export function HomePage({ emit }: HomePageProps) {
               </p>
               <button
                 onClick={handleCreate}
-                className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all card-shadow"
+                disabled={!connected || submitting}
+                className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed card-shadow"
               >
-                确认创建
+                {submitting ? '创建中...' : '确认创建'}
               </button>
               <button
                 onClick={() => setMode('idle')}
@@ -155,10 +175,10 @@ export function HomePage({ emit }: HomePageProps) {
               </div>
               <button
                 onClick={handleJoin}
-                disabled={codeDigits.some(d => !d)}
+                disabled={codeDigits.some(d => !d) || !connected || submitting}
                 className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed card-shadow"
               >
-                加入房间
+                {submitting ? '加入中...' : '加入房间'}
               </button>
               <button
                 onClick={() => setMode('idle')}

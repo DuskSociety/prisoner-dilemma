@@ -69,8 +69,9 @@ export function useSocket() {
       alert(data.message || '发生错误');
     });
 
-    // Auto-reconnect with stored token
+    // Track connection state
     socket.on('connect', () => {
+      store.setConnected(true);
       const state = useGameStore.getState();
       if (state.roomId && state.token) {
         socket.emit('reconnect_room', {
@@ -80,6 +81,15 @@ export function useSocket() {
       }
     });
 
+    socket.on('disconnect', () => {
+      store.setConnected(false);
+    });
+
+    // Update initial connection state (may already be connected)
+    if (socket.connected) {
+      store.setConnected(true);
+    }
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -87,7 +97,12 @@ export function useSocket() {
   }, []);
 
   const emit = useCallback((event: string, data?: any) => {
-    socketRef.current?.emit(event, data);
+    const s = socketRef.current;
+    if (!s?.connected) {
+      console.warn('Socket not connected, cannot emit:', event);
+      return;
+    }
+    s.emit(event, data);
   }, []);
 
   return { socket: socketRef.current, emit };

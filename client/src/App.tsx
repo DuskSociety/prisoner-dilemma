@@ -65,7 +65,7 @@ export default function App() {
       {/* Page Content */}
       <main className="max-w-4xl mx-auto px-4 py-6">
         {page === 'home' && <HomePage emit={emit} />}
-        {page === 'rules' && <RulesPage emit={emit} hasActiveGame={hasActiveGame} />}
+        {page === 'rules' && <RulesPage hasActiveGame={hasActiveGame} />}
         {page === 'room' && <RoomPage emit={emit} />}
         {page === 'game' && <GamePage emit={emit} />}
       </main>

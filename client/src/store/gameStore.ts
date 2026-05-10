@@ -4,6 +4,7 @@ import type { GameState, PageView, TurnResult } from '../types/game';
 interface GameStore extends GameState {
   page: PageView;
   setPage: (page: PageView) => void;
+  setConnected: (connected: boolean) => void;
   setRoomJoined: (data: any) => void;
   setOpponentJoined: (name: string) => void;
   setReadyChanged: (playerIndex: number, isReady: boolean) => void;
@@ -29,6 +30,7 @@ interface GameStore extends GameState {
 
 const initial: GameState & { page: PageView } = {
   page: 'home',
+  connected: false,
   roomId: null, playerIndex: null, token: null, name: null,
   status: null, currentRound: 0, currentTurn: 0,
   myHand: [], myScore: 0, isReady: false, hasSubmitted: false,
@@ -42,6 +44,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   ...initial,
 
   setPage: (page) => set({ page }),
+
+  setConnected: (connected) => set({ connected }),
 
   setRoomJoined: (data) => set((s) => ({
     page: 'room', roomId: data.roomId, playerIndex: data.playerIndex,
@@ -146,7 +150,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setOpponentReconnected: () => set((s) => ({
     opponent: s.opponent ? { ...s.opponent, connected: true } : null,
   })),
-  setOpponentLeft: () => set({ page: 'home', ...initial }),
+  setOpponentLeft: () => set({ ...initial, page: 'home', connected: get().connected }),
 
   setRematchStarted: (data) => set({
     status: 'playing', currentRound: data.currentRound || 1,
@@ -164,5 +168,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setRematchVoteAccepted: () => set({ iVotedRematch: true }),
   selectCard: (cardId) => set({ selectedCardId: cardId }),
   dismissRoundSummary: () => set({ roundJustEnded: null }),
-  reset: () => set(initial),
+  reset: () => set({ ...initial, connected: get().connected }),
 }));
