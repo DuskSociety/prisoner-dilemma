@@ -15,38 +15,40 @@ function getActualLabel(a: string) { return a === 'big' ? '🤝 合作' : '⚔�
 function getActualColor(a: string) { return a === 'big' ? 'text-red-600' : 'text-blue-600'; }
 
 function TurnResultDisplay({ turn, playerIndex }: { turn: TurnResult; playerIndex: number }) {
-  const myCard = playerIndex === 0 ? turn.p1Card : turn.p2Card;
-  const oppCard = playerIndex === 0 ? turn.p2Card : turn.p1Card;
-  const myActual = playerIndex === 0 ? turn.p1Actual : turn.p2Actual;
-  const oppActual = playerIndex === 0 ? turn.p2Actual : turn.p1Actual;
   const myGain = playerIndex === 0 ? turn.p1ScoreGain : turn.p2ScoreGain;
   const oppGain = playerIndex === 0 ? turn.p2ScoreGain : turn.p1ScoreGain;
+  // Determine outcome type (hidden from player, but colors hint at result)
+  const myActual = playerIndex === 0 ? turn.p1Actual : turn.p2Actual;
+  const oppActual = playerIndex === 0 ? turn.p2Actual : turn.p1Actual;
+  const bothCooperate = myActual === 'big' && oppActual === 'big';
+  const bothBetray = myActual === 'small' && oppActual === 'small';
 
   return (
-    <div className="animate-flip-in bg-white rounded-2xl card-shadow-lg p-5 mb-6">
-      <div className="text-center text-sm text-text-muted mb-3">
+    <div className="animate-slide-up bg-white rounded-2xl card-shadow-lg p-5 mb-6 text-center">
+      <div className="text-sm text-text-muted mb-3">
         第 {turn.roundIndex} 轮 · 第 {turn.turnIndex} 回合
       </div>
-      <div className="flex items-center justify-center gap-5">
+      <div className="flex items-center justify-center gap-8">
         <div className="text-center">
-          <div className={`w-16 h-20 rounded-xl ${cardConfig[myCard]?.color} flex items-center justify-center text-white font-bold mx-auto card-shadow`}>
-            <span className="text-2xl">{cardConfig[myCard]?.emoji}</span>
-          </div>
-          <div className={`text-xs mt-1 font-medium ${getActualColor(myActual)}`}>{getActualLabel(myActual)}</div>
-          <div className={`text-sm font-bold mt-1 ${myGain > 0 ? 'text-green-600' : myGain === 0 ? 'text-text-muted' : 'text-red-500'}`}>
+          <div className="text-xs text-text-muted mb-1">你</div>
+          <div className={`text-2xl font-bold animate-score-pop ${
+            myGain >= 3 ? 'text-green-500' : myGain > 0 ? 'text-amber-500' : myGain === 0 ? 'text-text-muted' : 'text-red-400'
+          }`}>
             {myGain > 0 ? '+' : ''}{myGain}
           </div>
         </div>
-        <div className="text-text-muted font-bold text-sm">VS</div>
+        <div className="w-px h-10 bg-slate-200" />
         <div className="text-center">
-          <div className={`w-16 h-20 rounded-xl ${cardConfig[oppCard]?.color} flex items-center justify-center text-white font-bold mx-auto card-shadow`}>
-            <span className="text-2xl">{cardConfig[oppCard]?.emoji}</span>
-          </div>
-          <div className={`text-xs mt-1 font-medium ${getActualColor(oppActual)}`}>{getActualLabel(oppActual)}</div>
-          <div className={`text-sm font-bold mt-1 ${oppGain > 0 ? 'text-green-600' : oppGain === 0 ? 'text-text-muted' : 'text-red-500'}`}>
+          <div className="text-xs text-text-muted mb-1">对手</div>
+          <div className={`text-2xl font-bold ${
+            oppGain >= 3 ? 'text-green-500' : oppGain > 0 ? 'text-amber-500' : oppGain === 0 ? 'text-text-muted' : 'text-red-400'
+          }`}>
             {oppGain > 0 ? '+' : ''}{oppGain}
           </div>
         </div>
+      </div>
+      <div className="mt-2 text-xs text-text-muted">
+        {bothCooperate ? '双方合作' : bothBetray ? '双方背叛' : '一方合作，一方背叛'}
       </div>
     </div>
   );
