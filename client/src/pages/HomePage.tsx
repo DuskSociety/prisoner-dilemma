@@ -85,7 +85,7 @@ export function HomePage({ emit }: HomePageProps) {
       <div className="text-center mb-10 animate-slide-up">
         <div className="text-6xl mb-4">🃏</div>
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          囚徒博弈：对决
+          塑料好朋友
         </h1>
         <p className="text-text-secondary text-lg max-w-md mx-auto">
           5张牌 · 5回合 · 2位玩家<br />

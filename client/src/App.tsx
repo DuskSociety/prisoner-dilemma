@@ -45,7 +45,7 @@ export default function App() {
             className="text-lg font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-2"
           >
             <span className="text-2xl">🃏</span>
-            <span className="hidden sm:inline">囚徒博弈：对决</span>
+            <span className="hidden sm:inline">塑料好朋友</span>
           </button>
           <div className="flex gap-1 items-center">
             {hasActiveGame && (

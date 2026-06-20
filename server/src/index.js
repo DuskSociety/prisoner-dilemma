@@ -43,9 +43,9 @@ if (fs.existsSync(distPath)) {
   app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"><title>囚徒博弈 - 服务端</title>
+<head><meta charset="UTF-8"><title>塑料好朋友 - 服务端</title>
 <style>body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f8fafc;color:#1e293b}.card{background:#fff;border-radius:16px;padding:40px;box-shadow:0 2px 12px rgba(0,0,0,.08);text-align:center}h1{color:#2e75b6;margin:0 0 8px}.status{display:inline-block;background:#dcfce7;color:#166534;padding:4px 12px;border-radius:999px;font-size:14px}</style></head>
-<body><div class="card"><h1>囚徒博弈：对决</h1><p>游戏服务端运行中</p><div class="status">在线</div><p style="color:#64748b;font-size:14px">端口 ${PORT} | 请启动前端: cd client && npm run dev</p></div></body></html>`);
+<body><div class="card"><h1>塑料好朋友</h1><p>游戏服务端运行中</p><div class="status">在线</div><p style="color:#64748b;font-size:14px">端口 ${PORT} | 请启动前端: cd client && npm run dev</p></div></body></html>`);
   });
 }
 

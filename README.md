@@ -1,10 +1,10 @@
-# 囚徒博弈：对决
+# 塑料好朋友
 
 > 双人回合制策略博弈游戏 — 信任还是背叛？每一次选择都至关重要。
 
 ## 游戏简介
 
-以囚徒困境博弈论为核心的联机对战游戏。双方各持5张手牌（2张 🤝 合作卡 + 2张 ⚔️ 背叛卡 + 1张  万能牌），在5轮×5回合的同步出牌中斗智斗勇。
+以囚徒困境博弈论为核心的联机对战游戏。双方各持5张手牌（2张 🤝 合作卡 + 2张 ⚔️ 背叛卡 + 1张 💎 万能牌），在5轮×5回合的同步出牌中斗智斗勇。
 
 回合结算不显示对方出牌——你必须通过得分变化来推测对手的策略。
 
@@ -15,6 +15,26 @@
 - 万能牌根据剩余手牌中哪种牌更多自动判定
 - 5轮后累计总分高者获胜
 - 详细规则见游戏内"规则"页面
+
+## 功能特性
+
+### v1 基础
+- 双人实时对战（Socket.IO WebSocket）
+- 6位数字房间码创建/加入
+- 准备机制、断线重连（30s宽限期）
+- 再来一局（双方投票）
+
+### v2 更新 (2026-06-20)
+- **观战模式**：第三者输入房间码可观战（最多3人），双方手牌完整可见
+- **聊天框**：房间/游戏/观战中可用，系统消息自动广播关键事件
+- **个人中心**：头像选择(12个emoji)、昵称编辑、战绩统计（胜率/最高分）
+- **历史记录**：对战记录含 SVG 折线图展示逐轮得分变化
+- **底部导航栏**：首页/规则/我的 三Tab快速切换
+
+### v2.1 修复 (2026-06-20)
+- 游戏更名：囚徒博弈：对决 → **塑料好朋友**
+- 规则页优化：移除"大Joker/小Joker"旧称，统一使用"合作卡/背叛卡"
+- 删除收益矩阵下方学术公式描述
 
 ---
 
@@ -79,6 +99,8 @@ ngrok http 3001
 4. 自动构建部署，获得永久域名如 `xxx.up.railway.app`
 5. 把域名发给朋友即可随时对战
 
+当前在线地址：**https://prisoner-dilemma-production.up.railway.app/**
+
 ---
 
 ## 技术栈
@@ -88,4 +110,39 @@ ngrok http 3001
 | 前端 | React + TypeScript + Tailwind CSS + Zustand |
 | 后端 | Node.js + Express + Socket.io |
 | 实时通信 | WebSocket（Socket.io） |
-| 部署 | Railway / ngrok |
+| 部署 | Railway（自动从 main 分支构建） |
+
+## 项目结构
+
+```
+├── server/
+│   └── src/
+│       ├── index.js              # Express + Socket.IO 入口
+│       ├── game/
+│       │   ├── types.js          # 游戏常量和卡牌逻辑
+│       │   └── RoomManager.js    # 房间/玩家/观战/聊天管理
+│       └── socket/
+│           └── handlers.js       # Socket 事件路由
+├── client/
+│   └── src/
+│       ├── App.tsx               # 顶层路由 + 导航 + 聊天/底部栏
+│       ├── pages/
+│       │   ├── HomePage.tsx      # 首页（创建/加入/观战）
+│       │   ├── RoomPage.tsx      # 房间大厅
+│       │   ├── GamePage.tsx      # 游戏主界面
+│       │   ├── SpectatorPage.tsx # 观战页面
+│       │   ├── ProfilePage.tsx   # 个人中心
+│       │   └── RulesPage.tsx     # 游戏规则
+│       ├── components/
+│       │   ├── BottomNav.tsx      # 底部导航栏
+│       │   ├── ChatBox.tsx        # 聊天框
+│       │   └── RoundScoreChart.tsx # SVG折线图
+│       ├── store/
+│       │   ├── gameStore.ts      # 游戏状态管理
+│       │   └── profileStore.ts   # 个人中心状态管理
+│       ├── hooks/
+│       │   └── useSocket.ts      # Socket连接和事件注册
+│       └── types/
+│           └── game.ts           # TypeScript类型定义
+└── package.json                  # Railway构建脚本
+```

@@ -19,8 +19,8 @@ export function RulesPage({ hasActiveGame }: { hasActiveGame?: boolean }) {
       <section className="bg-white rounded-2xl card-shadow p-5 mb-4">
         <h2 className="text-lg font-semibold text-text-primary mb-3">概述</h2>
         <p className="text-text-secondary leading-relaxed">
-          囚徒博弈：对决是一款双人回合制策略博弈游戏。每位玩家拥有5张手牌（2张大Joker + 2张小Joker + 1张万能牌），
-          在5个回合中，双方同时选择一张牌打出，根据囚徒困境矩阵计算得分，5轮后总分高者获胜。
+          塑料好朋友是一款双人回合制策略博弈游戏。每位玩家拥有5张手牌（2张合作卡 + 2张背叛卡 + 1张万能牌），
+          在5个回合中，双方同时选择一张牌打出，根据博弈矩阵计算得分，5轮后总分高者获胜。
         </p>
       </section>
 
@@ -85,9 +85,6 @@ export function RulesPage({ hasActiveGame }: { hasActiveGame?: boolean }) {
               </tr>
             </tbody>
           </table>
-        </div>
-        <div className="mt-3 p-3 bg-slate-50 rounded-lg text-xs text-text-muted">
-          <span className="font-mono">T(5) &gt; R(3) &gt; P(1) &gt; S(0)</span>，且 <span className="font-mono">2R(6) &gt; T+S(5)</span>，满足经典囚徒困境条件。
         </div>
       </section>
 
