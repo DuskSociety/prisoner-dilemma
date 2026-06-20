@@ -1,5 +1,6 @@
 import { useGameStore } from '../store/gameStore';
 import type { TurnResult } from '../types/game';
+import { ChatBox } from '../components/ChatBox';
 
 interface GamePageProps {
   emit: (event: string, data?: any) => void;
@@ -61,6 +62,7 @@ export function GamePage({ emit }: GamePageProps) {
     selectedCardId, hasSubmitted, opponentConfirmed,
     lastTurnResult, showingResult, roundJustEnded, winner,
     opponentVotedRematch, iVotedRematch,
+    chatMessages, isChatOpen, unreadChatCount,
   } = useGameStore();
 
   const selectCard = useGameStore.getState().selectCard;

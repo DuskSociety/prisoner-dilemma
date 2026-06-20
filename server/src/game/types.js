@@ -15,6 +15,7 @@ export const GameStatus = {
 
 export const TOTAL_ROUNDS = 5;        // 5大轮
 export const TURNS_PER_ROUND = 5;     // 每轮5回合，对应5张手牌
+export const MAX_SPECTATORS = 3;      // 最大观战人数
 
 // Payoff matrix
 // [p1Card][p2Card] -> { p1Gain, p2Gain }

@@ -2,6 +2,7 @@ import {
   CardType, GameStatus, TOTAL_ROUNDS, TURNS_PER_ROUND,
   createHand, resolveCard, getPayoff,
   generateRoomCode, generateToken,
+  MAX_SPECTATORS,
 } from './types.js';
 
 const rooms = new Map();
@@ -69,6 +70,8 @@ export function createRoom() {
     roundScores: [],      // per-round totals: [{ p0Total, p1Total }, ...]
     createdAt: Date.now(),
     rematchVotes: new Set(),
+    messages: [],           // chat messages: { id, sender, text, senderType, timestamp }
+    spectators: [],         // spectator list: { id, name, joinedAt }
   };
 
   rooms.set(roomId, room);
@@ -303,6 +306,93 @@ export function leaveRoom(roomId, playerIndex) {
     return { roomClosed: true };
   }
   return { left: true, room };
+}
+
+export function addMessage(roomId, sender, text, senderType) {
+  const room = rooms.get(roomId);
+  if (!room) return null;
+  const msg = {
+    id: crypto.randomUUID(),
+    sender,
+    text: text.slice(0, 200),
+    senderType,  // 'player' | 'spectator' | 'system'
+    timestamp: Date.now(),
+  };
+  if (!room.messages) room.messages = [];
+  room.messages.push(msg);
+  if (room.messages.length > 50) room.messages.shift();
+  return msg;
+}
+
+export function getMessages(roomId) {
+  const room = rooms.get(roomId);
+  return room?.messages || [];
+}
+
+// ---- Spectator ----
+export function joinAsSpectator(roomId, name) {
+  const room = rooms.get(roomId);
+  if (!room) return { error: 'ROOM_NOT_FOUND', message: '房间不存在或已关闭' };
+  if (room.status === GameStatus.ENDED) return { error: 'GAME_ENDED', message: '游戏已结束，无法观战' };
+  if (!room.spectators) room.spectators = [];
+  if (room.spectators.length >= MAX_SPECTATORS) return { error: 'SPECTATOR_FULL', message: '观战人数已满（最多3人）' };
+
+  let displayName = name;
+  for (const p of room.players) {
+    if (p && p.name === displayName) { displayName = name + '(观战)'; break; }
+  }
+  for (const s of room.spectators) {
+    if (s.name === displayName) { displayName = name + '(观战)'; break; }
+  }
+
+  const spectator = { id: crypto.randomUUID(), name: displayName, joinedAt: Date.now() };
+  room.spectators.push(spectator);
+  console.log(`${displayName} spectating room ${roomId} (${room.spectators.length}/${MAX_SPECTATORS})`);
+  return { spectator, room };
+}
+
+export function leaveSpectator(roomId, spectatorId) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+  if (!room.spectators) return;
+  room.spectators = room.spectators.filter(s => s.id !== spectatorId);
+  // Cleanup empty room
+  if (!room.players[0] && !room.players[1] && room.spectators.length === 0) {
+    cancelCleanup(roomId);
+    rooms.delete(roomId);
+    return { roomClosed: true };
+  }
+  return { left: true, room };
+}
+
+export function getSpectatorView(roomId) {
+  const room = rooms.get(roomId);
+  if (!room) return null;
+
+  const players = room.players.map(p => {
+    if (!p) return null;
+    return {
+      name: p.name,
+      hand: p.hand.length > 0 ? createHandView(p) : [],
+      score: p.score,
+      cardCount: p.hand.length,
+      isReady: p.isReady,
+      connected: p.connected,
+      hasSubmitted: !!p.currentSubmission,
+    };
+  });
+
+  return {
+    roomId: room.id,
+    status: room.status,
+    currentRound: room.currentRound,
+    currentTurn: room.currentTurn,
+    players,
+    rounds: room.rounds,
+    winner: room.winner,
+    spectatorCount: room.spectators?.length || 0,
+    messages: room.messages || [],
+  };
 }
 
 export function getPlayerView(roomId, playerIndex) {

@@ -7,7 +7,7 @@ interface HomePageProps {
 
 export function HomePage({ emit }: HomePageProps) {
   const { setPage, connected } = useGameStore();
-  const [mode, setMode] = useState<'idle' | 'create' | 'join'>('idle');
+  const [mode, setMode] = useState<'idle' | 'create' | 'join' | 'spectate'>('idle');
   const [name, setName] = useState(() => localStorage.getItem('pd_name') || '');
   const [code, setCode] = useState('');
   const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
@@ -33,6 +33,16 @@ export function HomePage({ emit }: HomePageProps) {
     setSubmitting(true);
     localStorage.setItem('pd_name', name.trim());
     emit('join_room', { code: fullCode, name: name.trim() });
+    clearTimeout(submitTimer.current);
+    submitTimer.current = setTimeout(() => setSubmitting(false), 5000);
+  };
+
+  const handleSpectate = () => {
+    const fullCode = codeDigits.join('');
+    if (!name.trim() || fullCode.length !== 6 || submitting) return;
+    setSubmitting(true);
+    localStorage.setItem('pd_name', name.trim());
+    emit('spectate_room', { code: fullCode, name: name.trim() });
     clearTimeout(submitTimer.current);
     submitTimer.current = setTimeout(() => setSubmitting(false), 5000);
   };
@@ -125,6 +135,13 @@ export function HomePage({ emit }: HomePageProps) {
               >
                 加入房间
               </button>
+              <button
+                onClick={() => setMode('spectate')}
+                disabled={!name.trim() || !connected}
+                className="w-full py-3.5 bg-purple-50 text-purple-600 rounded-xl font-semibold text-lg hover:bg-purple-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-purple-200"
+              >
+                👁️ 观战
+              </button>
             </div>
           )}
 
@@ -179,6 +196,48 @@ export function HomePage({ emit }: HomePageProps) {
                 className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed card-shadow"
               >
                 {submitting ? '加入中...' : '加入房间'}
+              </button>
+              <button
+                onClick={() => setMode('idle')}
+                className="w-full py-2.5 text-text-secondary hover:text-text-primary transition-colors text-sm"
+              >
+                返回
+              </button>
+            </div>
+          )}
+
+          {/* Spectate Mode */}
+          {mode === 'spectate' && (
+            <div className="space-y-4 animate-slide-up">
+              <p className="text-sm text-text-secondary text-center">
+                👁️ 输入房间码即可旁观对局，双方手牌可见
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  输入6位房间码
+                </label>
+                <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+                  {codeDigits.map((d, i) => (
+                    <input
+                      key={i}
+                      id={`code-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      value={d}
+                      onChange={(e) => handleDigitInput(i, e.target.value)}
+                      onKeyDown={(e) => handleDigitKeyDown(i, e)}
+                      maxLength={1}
+                      className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all text-text-primary"
+                    />
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={handleSpectate}
+                disabled={codeDigits.some(d => !d) || !connected || submitting}
+                className="w-full py-3.5 bg-purple-500 text-white rounded-xl font-semibold text-lg hover:bg-purple-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed card-shadow"
+              >
+                {submitting ? '进入中...' : '进入观战'}
               </button>
               <button
                 onClick={() => setMode('idle')}

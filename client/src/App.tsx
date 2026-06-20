@@ -4,22 +4,36 @@ import { HomePage } from './pages/HomePage';
 import { RulesPage } from './pages/RulesPage';
 import { RoomPage } from './pages/RoomPage';
 import { GamePage } from './pages/GamePage';
+import { SpectatorPage } from './pages/SpectatorPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { BottomNav } from './components/BottomNav';
+import { ChatBox } from './components/ChatBox';
+import { useProfileStore } from './store/profileStore';
 
 export default function App() {
-  const { page, setPage, status, roomId } = useGameStore();
+  const { page, setPage, status, roomId, chatMessages, isChatOpen, unreadChatCount, connected } = useGameStore();
   const { emit } = useSocket();
 
   const hasActiveGame = status === 'playing' || status === 'ended';
-  const hasSession = !!roomId;
+  const inRoom = page === 'room' || page === 'game' || page === 'spectate';
+  const showBottomNav = !inRoom;
+  const showChat = inRoom;
+
+  const setChatOpen = useGameStore(s => s.setChatOpen);
+
+  // Load profile from localStorage on mount
+  useProfileStore.getState().loadFromStorage();
 
   const handleGoHome = () => {
     if (hasActiveGame) {
-      // If in a game, go back to game instead of home
       setPage('game');
     } else {
       setPage('home');
     }
   };
+
+  const isOnMainTab = page === 'home' || page === 'rules' || page === 'profile';
+  const showTopTabs = isOnMainTab || page === 'spectate';
 
   return (
     <div className="min-h-screen bg-surface">
@@ -42,33 +56,54 @@ export default function App() {
                 返回游戏
               </button>
             )}
-            <button
-              onClick={() => setPage(hasActiveGame ? 'game' : 'home')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                page === 'home' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              首页
-            </button>
-            <button
-              onClick={() => setPage('rules')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                page === 'rules' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              规则
-            </button>
+            {showTopTabs && (
+              <>
+                <button
+                  onClick={() => setPage('home')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    page === 'home' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  首页
+                </button>
+                <button
+                  onClick={() => setPage('rules')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    page === 'rules' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  规则
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Page Content */}
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <main className={`max-w-4xl mx-auto px-4 py-6 ${showBottomNav ? 'pb-20' : ''}`}>
         {page === 'home' && <HomePage emit={emit} />}
         {page === 'rules' && <RulesPage hasActiveGame={hasActiveGame} />}
         {page === 'room' && <RoomPage emit={emit} />}
         {page === 'game' && <GamePage emit={emit} />}
+        {page === 'spectate' && <SpectatorPage emit={emit} />}
+        {page === 'profile' && <ProfilePage />}
       </main>
+
+      {/* Bottom Navigation */}
+      {showBottomNav && <BottomNav />}
+
+      {/* Chat Box */}
+      {showChat && (
+        <ChatBox
+          emit={emit}
+          messages={chatMessages}
+          isOpen={isChatOpen}
+          onToggle={() => setChatOpen(!isChatOpen)}
+          unreadCount={unreadChatCount}
+          disabled={!connected}
+        />
+      )}
     </div>
   );
 }

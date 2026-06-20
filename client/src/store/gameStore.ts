@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, PageView, TurnResult } from '../types/game';
+import type { GameState, PageView, TurnResult, ChatMessage, SpectatorView } from '../types/game';
 
 interface GameStore extends GameState {
   page: PageView;
@@ -26,6 +26,15 @@ interface GameStore extends GameState {
   selectCard: (cardId: string | null) => void;
   dismissRoundSummary: () => void;
   reset: () => void;
+  // Chat actions
+  addChatMessage: (msg: ChatMessage) => void;
+  setChatHistory: (msgs: ChatMessage[]) => void;
+  setChatOpen: (open: boolean) => void;
+  clearChat: () => void;
+  // Spectator actions
+  setSpectatorJoined: (data: { view: SpectatorView; messages: ChatMessage[]; spectatorId: string; name: string }) => void;
+  setSpectatorUpdate: (view: SpectatorView) => void;
+  setSpectatorCountChanged: (count: number) => void;
 }
 
 const initial: GameState & { page: PageView } = {
@@ -38,6 +47,9 @@ const initial: GameState & { page: PageView } = {
   selectedCardId: null, opponentConfirmed: false,
   lastTurnResult: null, showingResult: false, roundJustEnded: null,
   opponentVotedRematch: false, iVotedRematch: false,
+  chatMessages: [], unreadChatCount: 0, isChatOpen: false,
+  isSpectator: false,
+  spectatorView: null as SpectatorView | null,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -169,4 +181,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectCard: (cardId) => set({ selectedCardId: cardId }),
   dismissRoundSummary: () => set({ roundJustEnded: null }),
   reset: () => set({ ...initial, connected: get().connected }),
+
+  // Chat actions
+  addChatMessage: (msg) => set((s) => {
+    if (s.chatMessages.some(m => m.id === msg.id)) return {};
+    return {
+      chatMessages: [...s.chatMessages, msg].slice(-50),
+      unreadChatCount: s.isChatOpen ? 0 : Math.min(s.unreadChatCount + 1, 99),
+    };
+  }),
+  setChatHistory: (msgs) => set({ chatMessages: msgs }),
+  setChatOpen: (open) => set((s) => ({
+    isChatOpen: open,
+    unreadChatCount: open ? 0 : s.unreadChatCount,
+  })),
+  clearChat: () => set({ chatMessages: [], unreadChatCount: 0 }),
+
+  // Spectator actions
+  setSpectatorJoined: (data) => set({
+    page: 'spectate',
+    isSpectator: true,
+    roomId: data.view.roomId,
+    playerIndex: null,
+    name: data.name,
+    token: data.spectatorId,
+    spectatorView: data.view,
+    chatMessages: data.messages || [],
+    isChatOpen: false,
+    unreadChatCount: 0,
+  }),
+  setSpectatorUpdate: (view) => set({ spectatorView: view }),
+  setSpectatorCountChanged: (count) => set((s) => ({
+    spectatorView: s.spectatorView ? { ...s.spectatorView, spectatorCount: count } : null,
+  })),
 }));

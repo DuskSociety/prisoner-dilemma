@@ -53,6 +53,66 @@ export interface GameState {
   roundJustEnded: number | null; // round number that just ended (for summary display)
   opponentVotedRematch: boolean;
   iVotedRematch: boolean;
+  // Chat
+  chatMessages: ChatMessage[];
+  unreadChatCount: number;
+  isChatOpen: boolean;
+  // Spectator
+  isSpectator: boolean;
+  spectatorView: SpectatorView | null;
 }
 
-export type PageView = 'home' | 'rules' | 'room' | 'game';
+export type PageView = 'home' | 'rules' | 'room' | 'game' | 'spectate' | 'profile';
+
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  senderType: 'player' | 'spectator' | 'system';
+  timestamp: number;
+}
+
+export interface SpectatorView {
+  roomId: string;
+  status: GameStatus;
+  currentRound: number;
+  currentTurn: number;
+  players: Array<{
+    name: string;
+    hand: CardView[];
+    score: number;
+    cardCount: number;
+    isReady: boolean;
+    connected: boolean;
+    hasSubmitted: boolean;
+  } | null>;
+  rounds: TurnResult[];
+  winner: number | null | undefined;
+  spectatorCount: number;
+}
+
+export interface GameRecord {
+  id: string;
+  date: number;
+  opponentName: string;
+  result: 'win' | 'lose' | 'draw';
+  myTotalScore: number;
+  oppTotalScore: number;
+  roundScores: Array<{
+    round: number;
+    myScore: number;
+    oppScore: number;
+  }>;
+}
+
+export interface PlayerStats {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winRate: number;
+  maxRoundScore: number;
+  maxGameScore: number;
+  maxRoundScoreGameId: string;
+  maxGameScoreGameId: string;
+}

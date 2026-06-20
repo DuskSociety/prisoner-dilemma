@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
+import { useProfileStore } from '../store/profileStore';
+import type { GameRecord } from '../types/game';
 
 // 自动检测服务器地址
 function getServerUrl() {
@@ -51,7 +53,53 @@ export function useSocket() {
     socket.on('turn_start', store.setTurnStart);
     socket.on('round_ended', store.setRoundEnded);
     socket.on('round_start', store.setRoundStart);
-    socket.on('game_ended', store.setGameEnded);
+    socket.on('game_ended', (data) => {
+      store.setGameEnded(data);
+
+      // Save game record to profile history
+      const state = useGameStore.getState();
+      if (state.playerIndex !== null && state.opponent && state.allTurns.length > 0) {
+        // Compute per-round scores from accumulated totals
+        const roundTotals: Record<number, { myTotal: number; oppTotal: number }> = {};
+        for (const turn of state.allTurns) {
+          const r = turn.roundIndex;
+          roundTotals[r] = {
+            myTotal: state.playerIndex === 0 ? turn.p1TotalScore : turn.p2TotalScore,
+            oppTotal: state.playerIndex === 0 ? turn.p2TotalScore : turn.p1TotalScore,
+          };
+        }
+
+        const roundScores: GameRecord['roundScores'] = [];
+        let prevMy = 0, prevOpp = 0;
+        for (let r = 1; r <= 5; r++) {
+          const cur = roundTotals[r];
+          if (cur) {
+            roundScores.push({
+              round: r,
+              myScore: cur.myTotal - prevMy,
+              oppScore: cur.oppTotal - prevOpp,
+            });
+            prevMy = cur.myTotal;
+            prevOpp = cur.oppTotal;
+          }
+        }
+
+        const result = data.winner === state.playerIndex ? 'win'
+          : (data.winner === null || data.winner === undefined) ? 'draw' : 'lose';
+
+        const record: GameRecord = {
+          id: crypto.randomUUID(),
+          date: Date.now(),
+          opponentName: state.opponent.name,
+          result,
+          myTotalScore: state.myScore,
+          oppTotalScore: state.opponent.score,
+          roundScores,
+        };
+
+        useProfileStore.getState().addRecord(record);
+      }
+    });
 
     // Connection events
     socket.on('opponent_disconnected', store.setOpponentDisconnected);
@@ -63,6 +111,14 @@ export function useSocket() {
     socket.on('rematch_started', store.setRematchStarted);
     socket.on('opponent_rematch_vote', store.setOpponentRematchVote);
     socket.on('rematch_vote_accepted', store.setRematchVoteAccepted);
+
+    // Chat
+    socket.on('chat_message', (msg) => store.addChatMessage(msg));
+
+    // Spectator
+    socket.on('spectator_joined', store.setSpectatorJoined);
+    socket.on('spectator_update', store.setSpectatorUpdate);
+    socket.on('spectator_count_changed', (data) => store.setSpectatorCountChanged(data.count));
 
     // Error
     socket.on('error', (data) => {
