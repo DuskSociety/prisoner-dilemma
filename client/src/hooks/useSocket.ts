@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
 import { useProfileStore } from '../store/profileStore';
+import { useToastStore } from '../store/toastStore';
 import type { GameRecord } from '../types/game';
 
 // 自动检测服务器地址
@@ -122,7 +123,7 @@ export function useSocket() {
 
     // Error
     socket.on('error', (data) => {
-      alert(data.message || '发生错误');
+      useToastStore.getState().addToast(data.message || '发生错误', 'betray');
     });
 
     // Track connection state
